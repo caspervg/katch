@@ -7,6 +7,6 @@ interface KatchInteractor {
     fun get(id: String): Code
     fun edit(id: String, code: Code): Code
     fun remove(id: String)
-    fun all(): List<Code>
+    fun all(minTTL: Long = -1): List<Code>
 
 }

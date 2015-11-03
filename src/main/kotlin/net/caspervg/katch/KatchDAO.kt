@@ -7,6 +7,6 @@ interface KatchDAO {
     fun get(id: String): Code
     fun edit(id: String, replacement: Code)
     fun delete(id: String)
-    fun all(): List<Code>
+    fun all(minTTL: Long = -1): List<Code>
 
 }

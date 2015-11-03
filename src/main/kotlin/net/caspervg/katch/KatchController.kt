@@ -15,8 +15,13 @@ open public class KatchController @Autowired constructor(val interactor: KatchIn
     }
 
     @RequestMapping("/code", method = arrayOf(RequestMethod.GET))
-    public fun getCode(): List<Code> {
-        return interactor.all()
+    public fun getCode(@RequestParam("max_age", required = false, defaultValue = "-1") maxAge: Long): List<Code> {
+        if (maxAge < 0 || maxAge > Application.TIME_TO_LIVE) {
+            return interactor.all();
+        } else {
+            val minTTL = Application.TIME_TO_LIVE - maxAge
+            return interactor.all(minTTL);
+        }
     }
 
     @RequestMapping("/code/{id}", method = arrayOf(RequestMethod.GET))
@@ -38,7 +43,8 @@ open public class KatchController @Autowired constructor(val interactor: KatchIn
     }
 
     @RequestMapping("/code/{id}", method = arrayOf(RequestMethod.PUT))
-    public fun putCode(@RequestBody code: Code, @PathVariable id: String): Code {
+    public fun putCode(@RequestBody code: Code,
+                       @PathVariable id: String): Code {
         if (interactor.exists(id)) {
             return interactor.edit(id, code);
         } else {

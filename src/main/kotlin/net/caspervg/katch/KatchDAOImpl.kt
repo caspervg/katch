@@ -4,6 +4,7 @@ import org.redisson.Redisson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Service
 class KatchDAOImpl @Autowired constructor (val redis: Redisson) : KatchDAO {
@@ -16,7 +17,7 @@ class KatchDAOImpl @Autowired constructor (val redis: Redisson) : KatchDAO {
         val bucket = redis.getBucket<Code>(BUCKET_PREFIX + uuid)
         code.identifier = uuid
 
-        bucket.set(code)
+        bucket.set(code, Application.TIME_TO_LIVE, TimeUnit.SECONDS);
         return uuid
     }
 
@@ -43,7 +44,8 @@ class KatchDAOImpl @Autowired constructor (val redis: Redisson) : KatchDAO {
             val old = bucket.get()
             replacement.identifier = old.identifier
 
-            bucket.set(replacement)
+            // Edit the bucket, but don't reset the time to live
+            bucket.set(replacement, bucket.remainTimeToLive(), TimeUnit.SECONDS);
         } else {
             throw RuntimeException(NOT_PRESENT)
         }
@@ -55,13 +57,13 @@ class KatchDAOImpl @Autowired constructor (val redis: Redisson) : KatchDAO {
         bucket.delete();
     }
 
-    override fun all(): List<Code> {
+    override fun all(minTTL: Long): List<Code> {
         val codes = redis.keys.getKeysByPattern(BUCKET_PREFIX + "*")
         val ret = ArrayList<Code>()
 
         codes.forEach {
             val bucket = redis.getBucket<Code>(it)
-            if (bucket.exists()) {
+            if (bucket.exists() && bucket.remainTimeToLive() >= minTTL) {
                 ret.add(bucket.get())
             }
         }

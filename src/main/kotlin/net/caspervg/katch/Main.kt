@@ -25,6 +25,8 @@ public open class Application {
 
             return Redisson.create()
         }
+
+        public val TIME_TO_LIVE: Long = 30 * 60 // seconds
     }
 }
 

@@ -28,8 +28,8 @@ class KatchInteractorImpl @Autowired constructor (val dao: KatchDAO) : KatchInte
         dao.delete(id)
     }
 
-    override fun all(): List<Code> {
-        return dao.all();
+    override fun all(minTTL: Long): List<Code> {
+        return dao.all(minTTL);
     }
 
 }
